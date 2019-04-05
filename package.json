@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/iglenwoo/osu-class-bot/issues"
   },
-  "homepage": "https://github.com/iglenwoo/osu-class-bot#readme"
+  "homepage": "https://github.com/iglenwoo/osu-class-bot#readme",
+  "dependencies": {
+    "@slack/web-api": "^5.0.0"
+  }
 }
