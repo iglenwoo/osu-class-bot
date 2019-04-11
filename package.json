@@ -4,7 +4,7 @@
   "description": "Slack chat bot that provides class information and professor evaluation.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/iglenwoo/osu-class-bot#readme",
   "dependencies": {
-    "@slack/web-api": "^5.0.0"
+    "@slack/web-api": "^5.0.0",
+    "express": "^4.16.4"
   }
 }
