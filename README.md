@@ -1,24 +1,26 @@
-OSU Class Bot
+OSU Class Finder
 ==================
 
-This is an Slack chat bot APIs that provides class information and professor evaluation.
+This is an Slack app that provides class information and student's professor ratings in convenient ways.
 
 Introduction
 ------------
 
-Class information on class.oregonstate.edu and professor evaluation on ratemyprofessor.com is provided to users.
+Students often want to know not only the information of OSU classes, but also how lecturers of the classes are.
 
-Users can simply send slash commands on the OSU Class bot.
+[Rate My Professors](https://www.ratemyprofessors.com) is a website for professor ratings based on students. Students frequently visit this website as well as [OSU Class website](class.oregonstate.edu) when they search classes.
 
-Commands
+But, switching the two websites and copying names pasting them into one another is annoying.
+
+OSU Class Finder minimizes the effort by following `Slack commands`.  
+
+Slack Commands
 --------
 
-`class` shows class information and professor evaluation on ratemyprofessor.com
+`rate` shows the professor's rating of the class.
 ```text
-/class {major_code} {class_number} {year_season:optional}
-```
-
-`eval` shows the professor evaluation data on ratemyprofessor.com
-```text
-/eval {professor_name}
+/rate {{major_code}{class_number} | '{professor_name}'} ({year_season} {term(wt,sp,sm,f)})
+e.g. /rate cs553 2019 sp
+     /rate cs553
+     /rate 'alan turing'
 ```
