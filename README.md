@@ -17,10 +17,14 @@ OSU Class Finder minimizes the effort by following `Slack commands`.
 Slack Commands
 --------
 
-`rate` shows the professor's rating of the class.
+`class` shows the professor's rating of the class.
 ```text
-/rate {{major_code}{class_number} | '{professor_name}'} ({year_season} {term(wt,sp,sm,f)})
-e.g. /rate cs553 2019 sp
-     /rate cs553
-     /rate 'alan turing'
+/class {major_code}{class_number}
+e.g. /class cs553
+```
+
+`prof` shows the professor's rating.
+```text
+/prof '{professor_name}'
+e.g. /prof 'alan turing'
 ```
