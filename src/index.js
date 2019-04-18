@@ -23,9 +23,9 @@ const fetchClassDetails = (code, crn, srcdb) => {
         url,
         body
     }, (err, response, body) => {
-        console.log('error:', err); // Print the error if one occurred
-        console.log('httpResponse:', response && response.statusCode); // Print the response status code if a response was received
-        console.log('body:', body); // Print the HTML for the Google homepage.
+        console.log('error:', err);
+        console.log('httpResponse:', response && response.statusCode);
+        console.log('body:', body);
         const json = JSON.parse(body);
         const $ = cheerio.load(json.instructordetail_html);
         const instructor = $('.instructor-detail').text();
@@ -45,9 +45,9 @@ const searchClass = (classCode) => {
         url,
         body
     }, (err, response, body) => {
-        console.log('error:', err); // Print the error if one occurred
-        console.log('httpResponse:', response && response.statusCode); // Print the response status code if a response was received
-        console.log('body:', body); // Print the HTML for the Google homepage.
+        console.log('error:', err);
+        console.log('httpResponse:', response && response.statusCode);
+        console.log('body:', body);
         const json = JSON.parse(body);
         Object.values(json.results).forEach((result) => {
             fetchClassDetails(result.code, result.crn, result.srcdb);
