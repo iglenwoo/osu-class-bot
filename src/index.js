@@ -11,6 +11,36 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/', (req, res) => res.send('Not supported'));
 
+const searchProf = (prof) => {
+    const name = prof.replace(" ", "+");
+
+    const url = `https://www.ratemyprofessors.com/search.jsp?query=${name}`;
+    console.log(url);
+
+    request.get({
+        url
+    }, (err, response, body) => {
+        console.log('error:', err);
+        console.log('httpResponse:', response && response.statusCode);
+        console.log('body:', body);
+        const $ = cheerio.load(body);
+        // const profs = $('div', '#searchResultsBox').find('li[class="listing PROFESSOR"]');
+        const lis = $('li[class="listing PROFESSOR"]');
+        Object.values(lis).forEach(li => {
+            const html = cheerio.load(li);
+            const sub = html('.sub');
+            const text = sub.text();
+            if (text.includes('Oregon State University')) {
+                const a = html('a');
+                const target = a.attr('href');
+                const newLink = `https://www.ratemyprofessors.com${target}`;
+                // todo: get data in the link
+            }
+        })
+    });
+
+};
+
 const fetchClassDetails = (code, crn, srcdb) => {
     const headers = {
         contentType: 'application/json'
@@ -29,7 +59,7 @@ const fetchClassDetails = (code, crn, srcdb) => {
         const json = JSON.parse(body);
         const $ = cheerio.load(json.instructordetail_html);
         const instructor = $('.instructor-detail').text();
-        //todo : search this on ratemyprofessor
+        searchProf(instructor);
     });
 };
 
@@ -49,7 +79,9 @@ const searchClass = (classCode) => {
         console.log('httpResponse:', response && response.statusCode);
         console.log('body:', body);
         const json = JSON.parse(body);
+        // todo: multiple classes ?
         Object.values(json.results).forEach((result) => {
+            // todo: no result ?
             fetchClassDetails(result.code, result.crn, result.srcdb);
         });
     });
@@ -63,7 +95,6 @@ let message = {
 };
 
 app.post('/class', (req, res) => {
-    // TODO: get class info
     searchClass(req.body.text);
 
     res.setHeader('Content-Type', 'application/json');
