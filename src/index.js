@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
+const cheerio = require('cheerio');
 const app = express();
 const port = 4000;
 
@@ -25,7 +26,10 @@ const fetchClassDetails = (code, crn, srcdb) => {
         console.log('error:', err); // Print the error if one occurred
         console.log('httpResponse:', response && response.statusCode); // Print the response status code if a response was received
         console.log('body:', body); // Print the HTML for the Google homepage.
-        // todo: get prof
+        const json = JSON.parse(body);
+        const $ = cheerio.load(json.instructordetail_html);
+        const instructor = $('.instructor-detail').text();
+        //todo : search this on ratemyprofessor
     });
 };
 
@@ -62,13 +66,11 @@ app.post('/class', (req, res) => {
     // TODO: get class info
     searchClass(req.body.text);
 
-    // TODO: get professor rating
-
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(message));
 });
 
-app.post('/prof', (req, res) => {
+app.post('/prof', () => {
 
 });
 
