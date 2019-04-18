@@ -6,9 +6,28 @@ const port = 4000;
 
 app.use(bodyParser.json()); // for parsing application/json
 // NOTE: 'parsing application/x-www-form-urlencoded' is necessary.
-app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/', (req, res) => res.send('Not supported'));
+
+const fetchOSUClass = (classCode) => {
+
+    const headers = {
+        contentType: 'application/json'
+    };
+    const url = 'https://classes.oregonstate.edu/api/?page=fose&route=search';
+    const body = `{"other":{"srcdb":"999999"},"criteria":[{"field":"alias","value":"${classCode}"}]}`;
+
+    request.post({
+        headers,
+        url,
+        body
+    }, (err, response, body) => {
+        console.log('error:', err); // Print the error if one occurred
+        console.log('httpResponse:', response && response.statusCode); // Print the response status code if a response was received
+        console.log('body:', body); // Print the HTML for the Google homepage.
+    });
+};
 
 let message = {
     text: 'Text message',
@@ -17,28 +36,9 @@ let message = {
     ]
 };
 
-const parseQueryString = (query) => {
-    if (!query) return;
-
-    const parts = query.split(' ');
-    const majorClassNum = parts[0];// todo: split to major and classNum
-
-    let major, classNum;
-
-    return {
-        major, classNum
-    }
-};
-
-const fetchOSUClass = (major, classNum) => {
-    // https://classes.oregonstate.edu/api/?page=fose&route=search&alias=cs553
-    request.get(`https://classes.oregonstate.edu/api/?page=fose&route=search&subject=${major}${classNum}`);
-};
-
 app.post('/class', (req, res) => {
-    console.log(req.body); // todo: pass req.body.text to parser
-
     // TODO: get class info
+    fetchOSUClass(req.body.text);
 
     // TODO: get professor rating
 
