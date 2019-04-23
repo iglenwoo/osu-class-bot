@@ -11,6 +11,27 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 app.get('/', (req, res) => res.send('Not supported'))
 
+const fetchProf = (url) => {
+  request.get(
+    {
+      url,
+    },
+    (err, response, body) => {
+      console.log('error:', err)
+      console.log('httpResponse:', response && response.statusCode)
+      console.log('body:', body)
+      const $ = cheerio.load(body)
+      const html = $('div[class="breakdown-wrapper"]')
+      const quality = html.find('.quality-header').find('.grade')
+      console.log(quality.text().trim())
+      const takeAgain = html.find('.takeAgain').find('.grade')
+      console.log(takeAgain.text().trim())
+      const difficulty = html.find('.difficulty').find('.grade')
+      console.log(difficulty.text().trim())
+    }
+  )
+}
+
 const searchProf = prof => {
   const name = prof.replace(' ', '+')
 
@@ -36,7 +57,8 @@ const searchProf = prof => {
           const a = html('a')
           const target = a.attr('href')
           const newLink = `https://www.ratemyprofessors.com${target}`
-          // todo: get data in the link
+          console.log(newLink)
+          fetchProf(newLink)
         }
       })
     }
