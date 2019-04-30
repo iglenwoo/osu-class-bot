@@ -108,34 +108,42 @@ const fetchProf = async (url) => {
   }
 }
 
-let message = {
-  text: 'Enter class code',
-  attachments: [(text = 'Sub text...')],
-}
-
 const generateMessage = async (classCode) => {
-  const osuClass = await searchOsuClass(classCode)
-  const { code, crn, srcdb } = validateOsuClass(osuClass)
-  const instructor = await getInstructor(code, crn, srcdb)
-  const profUrl = await searchProf(instructor)
-  const { quality, takeAgain, difficulty } =  await fetchProf(profUrl)
-  message.text = `Quality: ${quality}
-  TakeAgain: ${takeAgain}
-  Difficulty: ${difficulty}
-  ${profUrl}`
+  const messageDetail = {
+    color: 'good',
+    title: '',
+    title_link: '',
+    text: ''
+  }
+  try {
+    const osuClass = await searchOsuClass(classCode)
+    const { code, crn, srcdb } = validateOsuClass(osuClass)
+    messageDetail.title =  classCode.toUpperCase()
+
+    const instructor = await getInstructor(code, crn, srcdb)
+    messageDetail.title =  `${messageDetail.title} - ${instructor}`
+
+    const profUrl = await searchProf(instructor)
+    messageDetail.title_link = profUrl
+
+    const { quality, takeAgain, difficulty } =  await fetchProf(profUrl)
+    messageDetail.text = `Quality: *${quality}*\tTakeAgain: *${takeAgain}*\tDifficulty: *${difficulty}*`
+  } catch (err) {
+    messageDetail.color = 'danger'
+    messageDetail.text = err.toString()
+  }
+
+  return {
+    attachments: [
+      messageDetail
+    ]
+  }
 }
 
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json')
 
-  try {
-    if (req.body.text) {
-        await generateMessage(req.body.text)
-    }
-  } catch (err) {
-    message.text = err.toString()
-  } finally {
-    const stringified = JSON.stringify(message)
-    res.end(stringified)
-  }
+  const message = await generateMessage(req.body.text)
+  const stringified = JSON.stringify(message)
+  res.end(stringified)
 }
