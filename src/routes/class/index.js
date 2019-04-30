@@ -18,8 +18,8 @@ const searchOsuClass = async classCode => {
     if (json.results.length === 1) {
       result = json.results[0]
     } else {
-      // todo: multiple classes ?
-      throw Error(`Multiple classses found with code(${classCode})`)
+      // todo: multiple classes -> pass prof names?
+      throw Error(`Multiple classes found with code(${classCode})`)
     }
   } else {
     throw Error(`No class with code(${classCode})`)
@@ -72,14 +72,15 @@ const searchProf = async (prof) => {
 
   let profLink
   for (let i in lis) {
-    const html = cheerio.load(lis[i])
-    const sub = html('.sub')
-    const text = sub.text()
-    if (text.includes('Oregon State University')) {
-      const a = html('a')
-      const target = a.attr('href')
-      profLink = `https://www.ratemyprofessors.com${target}`
-      // console.log(profLink)
+    if (lis.hasOwnProperty(i)) {
+      const html = cheerio.load(lis[i])
+      const sub = html('.sub')
+      const text = sub.text()
+      if (text.includes('Oregon State University')) {
+        const a = html('a')
+        const target = a.attr('href')
+        profLink = `https://www.ratemyprofessors.com${target}`
+      }
     }
   }
 
@@ -118,7 +119,10 @@ const generateMessage = async (classCode) => {
   const instructor = await getInstructor(code, crn, srcdb)
   const profUrl = await searchProf(instructor)
   const { quality, takeAgain, difficulty } =  await fetchProf(profUrl)
-  message.text = `quality: ${quality}, takeAgain: ${takeAgain}, difficulty: ${difficulty}`
+  message.text = `Quality: ${quality}
+  TakeAgain: ${takeAgain}
+  Difficulty: ${difficulty}
+  ${profUrl}`
 }
 
 module.exports = async (req, res) => {
