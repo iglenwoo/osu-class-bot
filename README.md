@@ -1,7 +1,7 @@
-OSU Class Finder
+Class Beaver
 ==================
 
-This is an Slack app that provides class information and student's professor ratings in convenient ways.
+This is an Slack app that provides class information and professor rating data in convenient ways.
 
 Introduction
 ------------
