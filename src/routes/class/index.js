@@ -89,7 +89,7 @@ const searchProf = async (prof) => {
 
 const fetchProf = async (url) => {
   if (!url) {
-    throw Error('Failed to get an professor url')
+    throw Error('Failed to get an professor url on ratemyprofessors.com')
   }
 
   const response = await fetch(url)
@@ -108,26 +108,72 @@ const fetchProf = async (url) => {
   }
 }
 
+function setRatingDetails(messageDetail, quality, takeAgain, difficulty) {
+  messageDetail.fields.push(
+    {
+      title: 'Quality',
+      value: quality,
+      short: true,
+    },
+  )
+  messageDetail.fields.push(
+    {
+      title: 'TakeAgain',
+      value: takeAgain,
+      short: true,
+    },
+  )
+  messageDetail.fields.push(
+    {
+      title: 'Difficulty',
+      value: difficulty,
+      short: true,
+    },
+  )
+}
+
 const generateMessage = async (classCode) => {
   const messageDetail = {
     color: 'good',
     title: '',
     title_link: '',
-    text: ''
+    text: '',
+    fields: []
   }
   try {
-    const osuClass = await searchOsuClass(classCode)
-    const { code, crn, srcdb } = validateOsuClass(osuClass)
     messageDetail.title =  classCode.toUpperCase()
 
-    const instructor = await getInstructor(code, crn, srcdb)
-    messageDetail.title =  `${messageDetail.title} - ${instructor}`
+    const osuClass = await searchOsuClass(classCode)
+    const { code, crn, srcdb, start_date, end_date, title } = validateOsuClass(osuClass)
+    messageDetail.title =  `${messageDetail.title} - ${title}`
+    messageDetail.fields.push({
+      title: 'Start Date',
+      value: start_date,
+      short: true,
+    })
+    messageDetail.fields.push({
+      title: 'End Date',
+      value: end_date,
+      short: true,
+    })
 
-    const profUrl = await searchProf(instructor)
+    const instructor = await getInstructor(code, crn, srcdb)
+    const name = instructor.replace(' ', '+')
+    let profUrl = `https://www.ratemyprofessors.com/search.jsp?query=${name}`
+    messageDetail.title_link = profUrl
+
+    messageDetail.fields.push({
+      title: 'Instructor',
+      value: instructor,
+      short: true,
+    })
+
+    profUrl = await searchProf(instructor)
     messageDetail.title_link = profUrl
 
     const { quality, takeAgain, difficulty } =  await fetchProf(profUrl)
-    messageDetail.text = `Quality: *${quality}*\tTakeAgain: *${takeAgain}*\tDifficulty: *${difficulty}*`
+    // messageDetail.text = `Quality: *${quality}*\tTakeAgain: *${takeAgain}*\tDifficulty: *${difficulty}*`
+    setRatingDetails(messageDetail, quality, takeAgain, difficulty)
   } catch (err) {
     messageDetail.color = 'danger'
     messageDetail.text = err.toString()
