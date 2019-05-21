@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iglenwoo/osu-class-finder.git"
+    "url": "git+https://github.com/iglenwoo/class-beaver.git"
   },
   "author": "iglenwoo@gmail.com",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/iglenwoo/osu-class-finder/issues"
+    "url": "https://github.com/iglenwoo/class-beaver/issues"
   },
-  "homepage": "https://github.com/iglenwoo/osu-class-finder#readme",
+  "homepage": "https://github.com/iglenwoo/class-beaver#readme",
   "dependencies": {
     "@slack/web-api": "^5.0.0",
     "cheerio": "^1.0.0-rc.3",
