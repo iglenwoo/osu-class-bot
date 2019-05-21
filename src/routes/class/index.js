@@ -89,13 +89,14 @@ const generateMessage = async (classCode) => {
 
 let history = new Map()
 
-const ONE_SEC = 1000
-const ONE_MIN = ONE_SEC * 60
-const TEN_MIN = ONE_MIN * 10
+const ONE_SEC_IN_MS = 1000
+const ONE_MIN_IN_MS = ONE_SEC_IN_MS * 60
+const TEN_MIN_IN_MS = ONE_MIN_IN_MS * 10
+const CACHE_MAX_MIN_IN_MS = process.env.CACHE_MAX_MIN ? process.env.CACHE_MAX_MIN * ONE_MIN_IN_MS : TEN_MIN_IN_MS
 
 const searchHistory = (code) => {
   const message = history.get(code)
-  if (Date.now() - message.created > TEN_MIN) {
+  if (message && Date.now() - message.created > CACHE_MAX_MIN_IN_MS) {
     history.delete(code)
     return;
   }
