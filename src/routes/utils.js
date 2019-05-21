@@ -1,7 +1,7 @@
 const fetch = require('node-fetch')
 const cheerio = require('cheerio')
 
-const searchOsuClass = async classCode => {
+const searchClasses = async classCode => {
   const url = 'https://classes.oregonstate.edu/api/?page=fose&route=search'
   const body = `{"other":{"srcdb":"999999"},"criteria":[{"field":"alias","value":"${classCode}"}]}`
 
@@ -10,22 +10,17 @@ const searchOsuClass = async classCode => {
     body,
   })
   const json = await response.json()
-  let result
+  let results = []
   if (json && json.results) {
     if (json.results.length === 0) {
       throw Error(`No class with code(${classCode})`)
     }
-    if (json.results.length === 1) {
-      result = json.results[0]
-    } else {
-      // todo: multiple classes -> pass prof names?
-      throw Error(`Multiple classes found with code(${classCode})`)
-    }
+    results = json.results
   } else {
     throw Error(`No class with code(${classCode})`)
   }
 
-  return result
+  return results
 }
 
 const getInstructor = async (code, crn, srcdb) => {
@@ -39,12 +34,22 @@ const getInstructor = async (code, crn, srcdb) => {
   return $('.instructor-detail').text()
 }
 
+const extractNameForSearch = (orgName) => {
+  const nameParts = orgName.split(' ')
+  const filtered = nameParts.filter((part, index) => {
+    if (index === 0 || index === nameParts.length - 1)
+      return part
+  })
+
+  return filtered.join('+')
+}
+
 const searchProf = async (prof) => {
   if (!prof) {
     throw Error('Failed to get professor name')
   }
 
-  const name = prof.replace(' ', '+')
+  const name = extractNameForSearch(prof)
 
   const url = `https://www.ratemyprofessors.com/search.jsp?query=${name}`
 
@@ -92,8 +97,9 @@ const fetchProf = async (url) => {
 }
 
 module.exports = {
-  searchOsuClass,
+  searchClasses,
   getInstructor,
+  extractNameForSearch,
   searchProf,
   fetchProf
 }
