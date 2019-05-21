@@ -18,15 +18,15 @@ const validateOsuClass = (osuClass) => {
 }
 
 function setRatingDetails(messageDetail, quality, takeAgain, difficulty) {
-  pushFieldTo(messageDetail, 'Quality', quality, true)
-  pushFieldTo(messageDetail, 'TakeAgain', takeAgain, true)
-  pushFieldTo(messageDetail, 'Difficulty', difficulty, true)
+  pushFieldTo(messageDetail, 'Quality', quality)
+  pushFieldTo(messageDetail, 'TakeAgain', takeAgain)
+  pushFieldTo(messageDetail, 'Difficulty', difficulty)
 }
 
-function pushFieldTo(message, fieldTitle, fieldValue, fieldShort) {
+function pushFieldTo(message, fieldTitle, fieldValue, fieldShort = true) {
   message.fields.push({
     title: fieldTitle,
-    value: fieldValue,
+    value: fieldValue || 'None',
     short: fieldShort,
   })
 }
@@ -59,8 +59,8 @@ const generateMessage = async (classCode) => {
       const { code, crn, srcdb, start_date, end_date, title } = validateOsuClass(c)
       messageDetail.title =  `${messageDetail.title} - ${title}`
 
-      pushFieldTo(messageDetail, 'Start Date', start_date, true)
-      pushFieldTo(messageDetail, 'End Date', end_date, true)
+      pushFieldTo(messageDetail, 'Start Date', start_date)
+      pushFieldTo(messageDetail, 'End Date', end_date)
 
       const instructor = await getInstructor(code, crn, srcdb)
       const name = extractNameForSearch(instructor)
@@ -89,8 +89,18 @@ const generateMessage = async (classCode) => {
 
 let history = new Map()
 
+const ONE_SEC = 1000
+const ONE_MIN = ONE_SEC * 60
+const TEN_MIN = ONE_MIN * 10
+
 const searchHistory = (code) => {
-  return history.get(code)
+  const message = history.get(code)
+  if (Date.now() - message.created > TEN_MIN) {
+    history.delete(code)
+    return;
+  }
+
+  return message
 }
 const saveHistory = (code, value) => {
   history.set(code, value)
@@ -102,6 +112,7 @@ module.exports = async (req, res) => {
   let message = searchHistory(req.body.text)
   if (!message) {
     message = await generateMessage(req.body.text)
+    message.created = Date.now()
     saveHistory(req.body.text, message)
   }
 
