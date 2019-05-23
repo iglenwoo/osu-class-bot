@@ -1,4 +1,12 @@
-const { fetchProf, getInstructor, extractNameForSearch, searchClasses, searchProf } = require('../utils')
+const {
+  fetchProf,
+  getInstructor,
+  extractNameForSearch,
+  searchClasses,
+  searchProf,
+  pushFieldTo,
+  pushCloneDetails
+} = require('../utils')
 
 const validateOsuClass = (osuClass) => {
   if (!osuClass) {
@@ -23,22 +31,9 @@ function setRatingDetails(messageDetail, quality, takeAgain, difficulty) {
   pushFieldTo(messageDetail, 'Difficulty', difficulty)
 }
 
-function pushFieldTo(message, fieldTitle, fieldValue, fieldShort = true) {
-  message.fields.push({
-    title: fieldTitle,
-    value: fieldValue || 'None',
-    short: fieldShort,
-  })
-}
-
-function pushCloneDetails(message, details) {
-  const clonedDetail = JSON.parse(JSON.stringify(details)) // deep copy
-  message.attachments.push(clonedDetail);
-}
-
 const generateMessage = async (classCode) => {
   const message = {
-    text: `Searched by "${classCode}"`,
+    text: `Searched by \`/class ${classCode}\``,
     attachments: []
   }
 

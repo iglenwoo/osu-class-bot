@@ -96,10 +96,25 @@ const fetchProf = async (url) => {
   }
 }
 
+function pushFieldTo(message, fieldTitle, fieldValue, fieldShort = true) {
+  message.fields.push({
+    title: fieldTitle,
+    value: fieldValue || 'None',
+    short: fieldShort,
+  })
+}
+
+function pushCloneDetails(message, details) {
+  const clonedDetail = JSON.parse(JSON.stringify(details)) // deep copy
+  message.attachments.push(clonedDetail);
+}
+
 module.exports = {
   searchClasses,
   getInstructor,
   extractNameForSearch,
   searchProf,
-  fetchProf
+  fetchProf,
+  pushFieldTo,
+  pushCloneDetails
 }
