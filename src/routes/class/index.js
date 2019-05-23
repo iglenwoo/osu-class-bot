@@ -7,6 +7,7 @@ const {
   pushFieldTo,
   pushCloneDetails
 } = require('../utils')
+const { SLACK } = require('../../models')
 
 const validateOsuClass = (osuClass) => {
   if (!osuClass) {
@@ -31,52 +32,57 @@ function setRatingDetails(messageDetail, quality, takeAgain, difficulty) {
   pushFieldTo(messageDetail, 'Difficulty', difficulty)
 }
 
-const generateMessage = async (classCode) => {
-  const message = {
-    text: `Searched by \`/class ${classCode}\``,
-    attachments: []
-  }
+const generateAttachmentByClass = async (osuClass, classCode) => {
+  let attachment = JSON.parse(JSON.stringify(SLACK.ATTACHMENT)) // deep copy
+  attachment.title = classCode.toUpperCase()
 
-  const attachment = {
-    color: 'good',
-    title: classCode.toUpperCase(),
-    title_link: '',
-    text: '',
-    fields: []
+  const { code, crn, srcdb, start_date, end_date, title } = validateOsuClass(osuClass)
+  attachment.title =  `${attachment.title} - ${title}`
+
+  pushFieldTo(attachment, 'Start Date', start_date)
+  pushFieldTo(attachment, 'End Date', end_date)
+
+  const instructor = await getInstructor(code, crn, srcdb)
+  const name = extractNameForSearch(instructor)
+  let profUrl = `https://www.ratemyprofessors.com/search.jsp?query=${name}`
+  attachment.title_link = profUrl
+
+  pushFieldTo(attachment, 'Instructor', instructor, false)
+
+  profUrl = await searchProf(instructor)
+  if (!profUrl){
+    // todo: recommend alternative names?
+    throw Error(`Failed to find \`${instructor}\` on ratemyprofessors.com`)
   }
-  let messageDetail;
+  attachment.title_link = profUrl
+
+  const { quality, takeAgain, difficulty } =  await fetchProf(profUrl)
+
+  setRatingDetails(attachment, quality, takeAgain, difficulty)
+
+  return attachment
+}
+
+const generateMessage = async (classCode) => {
+  let message;
+  let attachment;
 
   try {
+    message = JSON.parse(JSON.stringify(SLACK.MESSAGE))
+    message.text = `Searched by \`/class ${classCode}\``
+
+    attachment = JSON.parse(JSON.stringify(SLACK.ATTACHMENT))
+
     const classes = await searchClasses(classCode)
     for (const c of classes) {
-      messageDetail = JSON.parse(JSON.stringify(attachment)) // deep copy
+      attachment = await generateAttachmentByClass(c, classCode)
 
-      const { code, crn, srcdb, start_date, end_date, title } = validateOsuClass(c)
-      messageDetail.title =  `${messageDetail.title} - ${title}`
-
-      pushFieldTo(messageDetail, 'Start Date', start_date)
-      pushFieldTo(messageDetail, 'End Date', end_date)
-
-      const instructor = await getInstructor(code, crn, srcdb)
-      const name = extractNameForSearch(instructor)
-      let profUrl = `https://www.ratemyprofessors.com/search.jsp?query=${name}`
-      messageDetail.title_link = profUrl
-
-      pushFieldTo(messageDetail, 'Instructor', instructor, false)
-
-      profUrl = await searchProf(instructor)
-      messageDetail.title_link = profUrl
-
-      const { quality, takeAgain, difficulty } =  await fetchProf(profUrl)
-
-      setRatingDetails(messageDetail, quality, takeAgain, difficulty)
-
-      pushCloneDetails(message, messageDetail)
+      pushCloneDetails(message, attachment)
     }
   } catch (err) {
-    messageDetail.color = 'danger'
-    messageDetail.text = err.toString()
-    pushCloneDetails(message, messageDetail)
+    attachment.color = 'danger'
+    attachment.text = err.toString()
+    pushCloneDetails(message, attachment)
   }
 
   return message
