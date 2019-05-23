@@ -51,8 +51,9 @@ const generateAttachmentByClass = async (osuClass, classCode) => {
 
   profUrl = await searchProf(instructor)
   if (!profUrl){
-    // todo: recommend alternative names?
-    throw Error(`Failed to find \`${instructor}\` on ratemyprofessors.com`)
+    attachment.color = 'danger'
+    attachment.text = `Failed to find \`${instructor}\` on www.ratemyprofessors.com`
+    return attachment
   }
   attachment.title_link = profUrl
 
