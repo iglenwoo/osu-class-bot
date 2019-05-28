@@ -1,7 +1,8 @@
 const {
   searchProfessors,
-  pushFieldTo,
-  pushCloneDetails
+  pushProfessorDetailsTo,
+  pushCloneDetails,
+  CACHE_MAX_MIN_IN_MS
 } = require('../utils')
 const { SLACK } = require('../../models')
 
@@ -19,11 +20,7 @@ const generateMessage = async (name) => {
     for (const professor of professors) {
       attachment = JSON.parse(JSON.stringify(SLACK.ATTACHMENT)) // deep copy
 
-      const url = `https://www.ratemyprofessors.com/ShowRatings.jsp?tid=${professor.pk_id}`
-      pushFieldTo(attachment, 'Instructor', `_*<${url}|${professor.teacherfullname_s}>*_`)
-      pushFieldTo(attachment, 'Department', professor.teacherdepartment_s)
-      pushFieldTo(attachment, 'Overall Quality', professor.averageratingscore_rf)
-      pushFieldTo(attachment, 'Difficulty', professor.averageeasyscore_rf)
+      pushProfessorDetailsTo(attachment, professor)
 
       pushCloneDetails(message, attachment)
     }
@@ -36,11 +33,31 @@ const generateMessage = async (name) => {
   return message
 }
 
+let history = new Map()
+
+const searchHistory = (code) => {
+  const message = history.get(code)
+  if (message && Date.now() - message.created > CACHE_MAX_MIN_IN_MS) {
+    history.delete(code)
+    return;
+  }
+
+  return message
+}
+const saveHistory = (code, value) => {
+  history.set(code, value)
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json')
 
-  const message = await generateMessage(req.body.text)
+  let message = searchHistory(req.body.text)
+  if (!message) {
+    message = await generateMessage(req.body.text)
+    message.created = Date.now()
+    saveHistory(req.body.text, message)
+  }
 
   const messageStr = JSON.stringify(message)
-  res.send(messageStr)
+  res.end(messageStr)
 }

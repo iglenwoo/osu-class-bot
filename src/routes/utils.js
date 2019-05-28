@@ -23,13 +23,17 @@ const searchClasses = async classCode => {
   return results
 }
 
-const getInstructor = async (code, crn, srcdb) => {
+const getClassDetails = async (code, crn, srcdb) => {
   const url = 'https://classes.oregonstate.edu/api/?page=fose&route=details'
   const body = `{"group":"code:${code}","key":"crn:${crn}","srcdb":"${srcdb}","matched":"crn:${crn}"}`
 
   const response = await fetch(url, { method: 'POST', body })
   const data = await response.text()
-  const json = JSON.parse(data)
+
+  return JSON.parse(data)
+}
+
+const getInstructor = (json) => {
   const $ = cheerio.load(json.instructordetail_html)
   return $('.instructor-detail').text()
 }
@@ -123,13 +127,9 @@ const searchProfessors = async (name) => {
   if (json &&
     json.grouped &&
     json.grouped.content_type_s &&
-    json.grouped.content_type_s.groups) {
-    const groups = json.grouped.content_type_s.groups
-    if (groups.length === 0) {
-      throw Error(`No professor \`${name}\` on www.ratemyprofessors.com`)
-    }
-
-    for (const g of groups) {
+    json.grouped.content_type_s.groups &&
+    json.grouped.content_type_s.groups.length > 0) {
+    for (const g of json.grouped.content_type_s.groups) {
       if (g && g.doclist && g.doclist.docs) {
         for (const doc of g.doclist.docs) {
           if (doc.schoolname_s &&
@@ -139,8 +139,6 @@ const searchProfessors = async (name) => {
         }
       }
     }
-  } else {
-    throw Error(`No professor \`${name}\``)
   }
 
   return professors
@@ -159,13 +157,29 @@ function pushCloneDetails(message, details) {
   message.attachments.push(clonedDetail);
 }
 
+const pushProfessorDetailsTo = (attachment, professor) => {
+  const url = `https://www.ratemyprofessors.com/ShowRatings.jsp?tid=${professor.pk_id}`
+  pushFieldTo(attachment, 'Instructor', `_*<${url}|${professor.teacherfullname_s}>*_`)
+  pushFieldTo(attachment, 'Department', professor.teacherdepartment_s)
+  pushFieldTo(attachment, 'Overall Quality', professor.averageratingscore_rf)
+  pushFieldTo(attachment, 'Difficulty', professor.averageeasyscore_rf)
+}
+
+const ONE_SEC_IN_MS = 1000
+const ONE_MIN_IN_MS = ONE_SEC_IN_MS * 60
+const TEN_MIN_IN_MS = ONE_MIN_IN_MS * 10
+const CACHE_MAX_MIN_IN_MS = process.env.CACHE_MAX_MIN ? process.env.CACHE_MAX_MIN * ONE_MIN_IN_MS : TEN_MIN_IN_MS
+
 module.exports = {
   searchClasses,
+  getClassDetails,
   getInstructor,
   extractNameForSearch,
   searchProf,
   fetchProf,
   searchProfessors,
+  pushProfessorDetailsTo,
   pushFieldTo,
-  pushCloneDetails
+  pushCloneDetails,
+  CACHE_MAX_MIN_IN_MS
 }

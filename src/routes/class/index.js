@@ -1,11 +1,12 @@
 const {
-  fetchProf,
+  getClassDetails,
   getInstructor,
-  extractNameForSearch,
   searchClasses,
-  searchProf,
+  searchProfessors,
+  pushProfessorDetailsTo,
   pushFieldTo,
-  pushCloneDetails
+  pushCloneDetails,
+  CACHE_MAX_MIN_IN_MS
 } = require('../utils')
 const { SLACK } = require('../../models')
 
@@ -26,12 +27,6 @@ const validateOsuClass = (osuClass) => {
   return osuClass
 }
 
-function setRatingDetails(messageDetail, quality, takeAgain, difficulty) {
-  pushFieldTo(messageDetail, 'Quality', quality)
-  pushFieldTo(messageDetail, 'TakeAgain', takeAgain)
-  pushFieldTo(messageDetail, 'Difficulty', difficulty)
-}
-
 const generateAttachmentByClass = async (osuClass, classCode) => {
   let attachment = JSON.parse(JSON.stringify(SLACK.ATTACHMENT)) // deep copy
   attachment.title = classCode.toUpperCase()
@@ -39,28 +34,23 @@ const generateAttachmentByClass = async (osuClass, classCode) => {
   const { code, crn, srcdb, start_date, end_date, title } = validateOsuClass(osuClass)
   attachment.title =  `${attachment.title} - ${title}`
 
-  // todo: push - Campus, credit,
+  const classDetails = await getClassDetails(code, crn, srcdb)
+  pushFieldTo(attachment, 'Campus', classDetails.campus)
+  pushFieldTo(attachment, 'Credits', classDetails.hours_html)
   pushFieldTo(attachment, 'Start Date', start_date)
   pushFieldTo(attachment, 'End Date', end_date)
 
-  const instructor = await getInstructor(code, crn, srcdb)
-  const name = extractNameForSearch(instructor)
-  let profUrl = `https://www.ratemyprofessors.com/search.jsp?query=${name}`
-  attachment.title_link = profUrl
+  const instructor = getInstructor(classDetails)
 
-  pushFieldTo(attachment, 'Instructor', instructor, false)
-
-  profUrl = await searchProf(instructor)
-  if (!profUrl){
+  const professors = await searchProfessors(instructor)
+  if (professors.length !== 1) {
     attachment.color = 'danger'
     attachment.text = `Failed to find \`${instructor}\` on www.ratemyprofessors.com`
     return attachment
   }
-  attachment.title_link = profUrl
 
-  const { quality, takeAgain, difficulty } =  await fetchProf(profUrl)
-
-  setRatingDetails(attachment, quality, takeAgain, difficulty)
+  const professor = professors[0]
+  pushProfessorDetailsTo(attachment, professor)
 
   return attachment
 }
@@ -92,11 +82,6 @@ const generateMessage = async (classCode) => {
 
 let history = new Map()
 
-const ONE_SEC_IN_MS = 1000
-const ONE_MIN_IN_MS = ONE_SEC_IN_MS * 60
-const TEN_MIN_IN_MS = ONE_MIN_IN_MS * 10
-const CACHE_MAX_MIN_IN_MS = process.env.CACHE_MAX_MIN ? process.env.CACHE_MAX_MIN * ONE_MIN_IN_MS : TEN_MIN_IN_MS
-
 const searchHistory = (code) => {
   const message = history.get(code)
   if (message && Date.now() - message.created > CACHE_MAX_MIN_IN_MS) {
@@ -120,6 +105,6 @@ module.exports = async (req, res) => {
     saveHistory(req.body.text, message)
   }
 
-  const stringified = JSON.stringify(message)
-  res.end(stringified)
+  const messageStr = JSON.stringify(message)
+  res.end(messageStr)
 }

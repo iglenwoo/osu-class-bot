@@ -22,3 +22,12 @@ Slack Commands
 /class {major_code}{class_number}
 e.g. /class cs553
 ```
+
+`prof' shows the professor's rating data.
+```text
+/prof {any combination of OSU professor's name}
+e.g. /prof firstname
+     /prof lastname
+     /prof firstname lastname
+
+```
