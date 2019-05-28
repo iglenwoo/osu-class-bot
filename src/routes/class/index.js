@@ -39,6 +39,7 @@ const generateAttachmentByClass = async (osuClass, classCode) => {
   const { code, crn, srcdb, start_date, end_date, title } = validateOsuClass(osuClass)
   attachment.title =  `${attachment.title} - ${title}`
 
+  // todo: push - Campus, credit,
   pushFieldTo(attachment, 'Start Date', start_date)
   pushFieldTo(attachment, 'End Date', end_date)
 

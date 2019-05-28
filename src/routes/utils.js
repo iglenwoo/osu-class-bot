@@ -96,6 +96,56 @@ const fetchProf = async (url) => {
   }
 }
 
+const searchProfessors = async (name) => {
+  if (!name) {
+    throw Error('Enter professor name')
+  }
+
+  const target = extractNameForSearch(name)
+
+  const baseUrl = 'https://solr-aws-elb-production.ratemyprofessors.com//solr/rmp/select/?solrformat=true&rows=20&wt=json&json.wrf=noCB&callback=noCB&defType=edismax&qf=teacherfirstname_t%5E2000+teacherlastname_t%5E2000+teacherfullname_t%5E2000+autosuggest&bf=pow(total_number_of_ratings_i%2C1.7)&sort=score+desc&siteName=rmp&group=on&group.field=content_type_s&group.limit=20'
+  const query = `&q=${target}+oregon+state+university`
+  const url = baseUrl + query
+
+  const response = await fetch(url, {
+    method: 'GET'
+  })
+  const text = await response.text()
+  let json
+  if (text.length > 7) {
+    const jsonText = text.substring(5, text.length - 1)
+    json = JSON.parse(jsonText)
+  } else {
+    throw Error(`Failed to find professor \`${name}\``)
+  }
+
+  let professors = []
+  if (json &&
+    json.grouped &&
+    json.grouped.content_type_s &&
+    json.grouped.content_type_s.groups) {
+    const groups = json.grouped.content_type_s.groups
+    if (groups.length === 0) {
+      throw Error(`No professor \`${name}\` on www.ratemyprofessors.com`)
+    }
+
+    for (const g of groups) {
+      if (g && g.doclist && g.doclist.docs) {
+        for (const doc of g.doclist.docs) {
+          if (doc.schoolname_s &&
+            doc.schoolname_s === 'Oregon State University') {
+            professors.push(doc)
+          }
+        }
+      }
+    }
+  } else {
+    throw Error(`No professor \`${name}\``)
+  }
+
+  return professors
+}
+
 function pushFieldTo(message, fieldTitle, fieldValue, fieldShort = true) {
   message.fields.push({
     title: fieldTitle,
@@ -115,6 +165,7 @@ module.exports = {
   extractNameForSearch,
   searchProf,
   fetchProf,
+  searchProfessors,
   pushFieldTo,
   pushCloneDetails
 }
