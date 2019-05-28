@@ -17,12 +17,18 @@ const generateMessage = async (name) => {
     attachment = JSON.parse(JSON.stringify(SLACK.ATTACHMENT)) // deep copy
 
     const professors = await searchProfessors(name)
-    for (const professor of professors) {
-      attachment = JSON.parse(JSON.stringify(SLACK.ATTACHMENT)) // deep copy
-
-      pushProfessorDetailsTo(attachment, professor)
-
+    if (professors.length === 0) {
+      attachment.color = 'danger'
+      attachment.text = `Sorry, no professors found by "${name}"`
       pushCloneDetails(message, attachment)
+    } else {
+      for (const professor of professors) {
+        attachment = JSON.parse(JSON.stringify(SLACK.ATTACHMENT)) // deep copy
+
+        pushProfessorDetailsTo(attachment, professor)
+
+        pushCloneDetails(message, attachment)
+      }
     }
   } catch (err) {
     attachment.color = 'danger'

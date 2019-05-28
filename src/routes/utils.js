@@ -13,11 +13,11 @@ const searchClasses = async classCode => {
   let results = []
   if (json && json.results) {
     if (json.results.length === 0) {
-      throw Error(`No class with code(${classCode})`)
+      throw Error(`Sorry, no class with code(${classCode})`)
     }
     results = json.results
   } else {
-    throw Error(`No class with code(${classCode})`)
+    throw Error(`Sorry, no class with code(${classCode})`)
   }
 
   return results
