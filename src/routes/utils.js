@@ -167,8 +167,9 @@ const pushProfessorDetailsTo = (attachment, professor) => {
 
 const ONE_SEC_IN_MS = 1000
 const ONE_MIN_IN_MS = ONE_SEC_IN_MS * 60
-const TEN_MIN_IN_MS = ONE_MIN_IN_MS * 10
-const CACHE_MAX_MIN_IN_MS = process.env.CACHE_MAX_MIN ? process.env.CACHE_MAX_MIN * ONE_MIN_IN_MS : TEN_MIN_IN_MS
+const ONE_HOUR_IN_MS = ONE_MIN_IN_MS * 60
+const ONE_DAY_IN_MS = ONE_HOUR_IN_MS * 24
+const CACHE_MAX_MIN_IN_MS = process.env.CACHE_MAX_MIN ? process.env.CACHE_MAX_MIN * ONE_MIN_IN_MS : ONE_DAY_IN_MS
 
 module.exports = {
   searchClasses,
