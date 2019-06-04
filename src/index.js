@@ -1,5 +1,6 @@
+require('dotenv').config()
 const server = require('./server')
 
 const port = process.env.PORT || 4000;
 
-server.listen(port, () => console.log(`Class Beaver listening on port ${port}!`))
+server.listen(port, () => console.log(`Class Beaver listening on port '${port}'!`))

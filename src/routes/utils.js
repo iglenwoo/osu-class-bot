@@ -170,6 +170,7 @@ const ONE_MIN_IN_MS = ONE_SEC_IN_MS * 60
 const ONE_HOUR_IN_MS = ONE_MIN_IN_MS * 60
 const ONE_DAY_IN_MS = ONE_HOUR_IN_MS * 24
 const CACHE_MAX_MIN_IN_MS = process.env.CACHE_MAX_MIN ? process.env.CACHE_MAX_MIN * ONE_MIN_IN_MS : ONE_DAY_IN_MS
+console.log(`Set cache expired with '${CACHE_MAX_MIN_IN_MS / ONE_MIN_IN_MS}' min.`)
 
 module.exports = {
   searchClasses,
